@@ -9,7 +9,17 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
-rootProject.name = "ru_edu_kotlin"
 
-includeBuild("lessons")
-includeBuild("my-project")
+rootProject.name = "lessions"
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
+}
+
+include("m1-init")
+
+
