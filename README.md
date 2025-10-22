@@ -23,11 +23,21 @@
 3. Архитектура
     1. ADR
     2. [Описание API](docs/03-architecture/02-api.md)
-    3. [Архитектурные схемы](docs/03-architecture/03-arch.md)
+    3. Архитектурные схемы
 
 ## Структура проекта
 
 ## Подпроекты для занятий по языку Kotlin
 
 1. Модуль 1: Введение в Kotlin
-    [m1-init](m1-init)
+   1. [m1-init](lessons/m1-init) Первое домашнее задание 
+
+### Плагины Gradle сборки проекта
+
+1. [build-plugin](build-plugin) Модуль с плагинами
+2. [BuildPluginJvm](build-plugin/src/main/kotlin/BuildPluginJvm.kt) Плагин для сборки проектов JVM
+2. [BuildPluginMultiplarform](build-plugin/src/main/kotlin/BuildPluginMultiplatform.kt) Плагин для сборки
+
+## Проектные модули
+
+### Транспортные модели, API
