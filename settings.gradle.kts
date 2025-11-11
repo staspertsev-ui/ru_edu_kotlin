@@ -14,4 +14,3 @@ rootProject.name = "ru_edu_kotlin"
 includeBuild("lessons")
 includeBuild("my-project")
 include("my-project-other")
-include("my-project-other:my-project-dcompose")

@@ -1,0 +1,228 @@
+openapi: 3.0.3
+info:
+  title: "Control MNO ${VERSION_APP}"
+  description: This is a place where sellers and buyers meat each other
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/v1
+tags:
+  - name: res
+    description: Результаты измерений
+paths:
+  /res/create:
+    post:
+      tags:
+        - res
+      summary: Create res
+      operationId: resCreate
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResCreateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResCreateResponse'
+
+
+components:
+  schemas:
+
+    IRequest:
+      type: object
+      description: Базовый интерфейс для всех запросов
+      properties:
+        requestType:
+          type: string
+          description: Поле-дескриминатор для вычисления типа запроса
+          example: create
+      discriminator:
+        propertyName: requestType
+        mapping:
+          create: '#/components/schemas/ResCreateRequest'
+          read: '#/components/schemas/AdReadRequest'
+          update: '#/components/schemas/AdUpdateRequest'
+          delete: '#/components/schemas/AdDeleteRequest'
+          search: '#/components/schemas/AdSearchRequest'
+          offers: '#/components/schemas/AdOffersRequest'
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        group:
+          type: string
+        field:
+          type: string
+        message:
+          type: string
+
+    ResponseResult:
+      type: string
+      enum:
+        - success
+        - error
+
+    IResponse:
+      type: object
+      description: Базовый интерфейс для всех ответов
+      properties:
+        responseType:
+          type: string
+          description: Поле-дескриминатор для вычисления типа запроса
+          example: create
+        result:
+          $ref: '#/components/schemas/ResponseResult'
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+
+
+    UserId:
+      type: integer
+      description: Идентификатор пользователя
+
+    ResId:
+      type: string
+      description: Идентификатор измерения
+
+    ResLock:
+      type: string
+      description: Версия оптимистичной блокировки
+
+    BaseRes:
+      type: object
+      description: Объект описывает свойства, одинаковые для create и update
+      properties:
+        id:
+          type: integer
+          description: Идентификатор измерения
+        created:
+          type: string
+          description: Дата измерения
+        patientId:
+          type: integer
+          description: Идентификатор пациента (пользователя)
+        INR:
+          type: number
+          description: Измерение МНО
+        anticoagulantId:
+          type: integer
+          description: Идентификатор антикоагулянта
+        dose:
+          type: number
+          description: Доза
+
+
+    ResCreateObject:
+      allOf:
+        - $ref: '#/components/schemas/BaseRes'
+
+
+    ResCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/ResRequestDebug'
+        - type: object
+          properties:
+            res:
+              $ref: '#/components/schemas/ResCreateObject'
+
+    ResCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/ResResponseSingle'
+
+    ResResponseObject:
+      allOf:
+        - $ref: '#/components/schemas/BaseRes'
+        - type: object
+          description: Объект, который возвращается в ответе бэкенда
+          properties:
+            id:
+              $ref: '#/components/schemas/ResId'
+            ownerId:
+              $ref: '#/components/schemas/UserId'
+            lock:
+              $ref: '#/components/schemas/ResLock'
+            permissions:
+              type: array
+              uniqueItems: true
+              items:
+                $ref: '#/components/schemas/ResPermissions'
+
+    ResPermissions:
+      type: string
+      description: Доступы для операций над объявлением
+      enum:
+        - read
+        - update
+        - delete
+        - makeVisiblePublic
+        - makeVisibleOwn
+        - makeVisibleGroup
+
+    ResResponseSingle:
+      allOf:
+        - type: object
+          description: Ответ с одним измерением
+          properties:
+            res:
+              $ref: '#/components/schemas/ResResponseObject'
+
+
+
+    ResReadObject:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/ResResponseSingle'
+
+
+    # STUBS ======================
+
+    ResRequestDebugMode:
+      type: string
+      enum:
+        - prod
+        - test
+        - stub
+
+
+    ResRequestDebug:
+      type: object
+      properties:
+        debug:
+          $ref: '#/components/schemas/ResDebug'
+
+
+    ResDebug:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/ResRequestDebugMode'
+        stub:
+          $ref: '#/components/schemas/ResRequestDebugStubs'
+
+
+    ResRequestDebugStubs:
+      type: string
+      description: Перечисления всех стабов
+      enum:
+        - success
+        - notFound
+        - badId
+        - badTitle
+        - badDescription
+        - badVisibility
+        - cannotDelete
+        - badSearchString
