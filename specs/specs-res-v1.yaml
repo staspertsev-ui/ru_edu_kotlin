@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: "Control MNO ${VERSION_APP}"
-  description: This is a place where sellers and buyers meat each other
+  description: This is a place where patient records the results of INR measurements
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
@@ -31,6 +31,89 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResCreateResponse'
+
+  /res/read:
+    post:
+      tags:
+        - res
+      summary: Read Res
+      operationId: resRead
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResReadRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResReadResponse'
+
+
+  /res/update:
+    post:
+      tags:
+        - res
+      summary: Update Res
+      operationId: resUpdate
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResUpdateRequest'
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResUpdateResponse'
+
+  /res/delete:
+    post:
+      tags:
+        - res
+      summary: Delete Res
+      operationId: resDelete
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResDeleteRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResDeleteResponse'
+  /res/period:
+    post:
+      tags:
+        - res
+      summary: Search Res
+      operationId: resPeriod
+      requestBody:
+        description: Request body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResPeriodRequest'
+        required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResPeriodResponse'
 
 
 components:
@@ -109,7 +192,7 @@ components:
           description: Идентификатор измерения
         created:
           type: string
-          description: Дата измерения
+          description: Дата измерения в формате ISO 8601
         patientId:
           type: integer
           description: Идентификатор пациента (пользователя)
@@ -138,10 +221,58 @@ components:
             res:
               $ref: '#/components/schemas/ResCreateObject'
 
-    ResCreateResponse:
+    ResReadObject:
       allOf:
-        - $ref: '#/components/schemas/IResponse'
-        - $ref: '#/components/schemas/ResResponseSingle'
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/ResId'
+
+    ResReadRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/ResRequestDebug'
+        - type: object
+          properties:
+            ad:
+              $ref: '#/components/schemas/ResReadObject'
+
+    ResUpdateObject:
+      allOf:
+        - $ref: '#/components/schemas/BaseRes'
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/ResId'
+            lock:
+              $ref: '#/components/schemas/ResLock'
+
+    ResUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/ResRequestDebug'
+        - type: object
+          properties:
+            ad:
+              $ref: '#/components/schemas/ResUpdateObject'
+
+    ResDeleteObject:
+      allOf:
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/ResId'
+            lock:
+              $ref: '#/components/schemas/ResLock'
+
+    ResDeleteRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/ResRequestDebug'
+        - type: object
+          properties:
+            ad:
+              $ref: '#/components/schemas/ResDeleteObject'
 
     ResResponseObject:
       allOf:
@@ -160,6 +291,28 @@ components:
               uniqueItems: true
               items:
                 $ref: '#/components/schemas/ResPermissions'
+
+    ResPeriodFilter:
+      type: object
+      description: Набор фильтров для поиска
+      properties:
+        start:
+          type: string
+          description: Начало периода - дата в формате ISO 8601
+        end:
+            type: string
+            description: Окончание периода - дата в формате ISO 8601
+        ownerId:
+          $ref: '#/components/schemas/UserId'
+
+    ResPeriodRequest:
+      allOf:
+        - $ref: '#/components/schemas/IRequest'
+        - $ref: '#/components/schemas/ResRequestDebug'
+        - type: object
+          properties:
+            adFilter:
+              $ref: '#/components/schemas/ResPeriodFilter'
 
     ResPermissions:
       type: string
@@ -180,13 +333,41 @@ components:
             res:
               $ref: '#/components/schemas/ResResponseObject'
 
-
-
-    ResReadObject:
+    ResCreateResponse:
       allOf:
         - $ref: '#/components/schemas/IResponse'
         - $ref: '#/components/schemas/ResResponseSingle'
 
+    ResReadResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/ResResponseSingle'
+
+    ResUpdateResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/ResResponseSingle'
+
+    ResDeleteResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/ResResponseSingle'
+
+    ResResponseMulti:
+      allOf:
+        - type: object
+          description: Список объектов за период
+          properties:
+            ads:
+              type: array
+              items:
+                $ref: '#/components/schemas/ResResponseObject'
+
+
+    ResPeriodResponse:
+      allOf:
+        - $ref: '#/components/schemas/IResponse'
+        - $ref: '#/components/schemas/ResResponseMulti'
 
     # STUBS ======================
 
@@ -221,8 +402,8 @@ components:
         - success
         - notFound
         - badId
-        - badTitle
-        - badDescription
+        - badINR
+        - badDose
         - badVisibility
         - cannotDelete
         - badSearchString
